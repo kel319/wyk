@@ -17,7 +17,15 @@
 - **本地锁/分布式锁**: 防止高并发下缓存击穿, 提供两个默认锁实现
 - **空值降级处理**: 支持自定义策略处理空缓存
 # 快速开始
-- 导入到本地maven仓库
+- 导入到本地maven仓库:
+```bash
+  git clone https://github.com/kel319/wyk
+  cd wyk/redis/wyk-redis-cache-spring-boot-autoconfiguration
+  mvn clean install
+  cd ..
+  cd wyk-redis-cache-spring-boot-stater
+  mvn clean install
+```
 - 引入依赖:
 ```xml
 	<dependency>
