@@ -17,14 +17,15 @@
 # 快速开始
 - 导入到本地maven仓库
 - 引入依赖:
-- ```xml
-      <dependency>
+```xml
+	<dependency>
 			<groupId>com.wyk</groupId>
 			<artifactId>wyk-redis-cache-spring-boot-stater</artifactId>
 			<version>1.0-SNAPSHOT</version>
-	 	</dependency>
+	</dependency>
+```
 - application.yml配置:
-- ```yml
+```yml
   wyk:
   redis:
     cache:
@@ -42,8 +43,9 @@
       distributedLockTimeOut: 30 //分布式锁过期时间,默认30秒
       lock: defaultRedis //RedisCache注解提供的锁策略选择,默认是defaultRedis(分布式锁)
       expectedSize: 10000 //布隆过滤器预期插入条数,默认10000
+```
 - 注解使用
-- ```java
+```java
   @RedisInterface(
     key = "#id", //spel表达式,必填
     value = "user", //缓存key前缀,默认defaultValue
@@ -55,14 +57,15 @@
   public User getUserById(Long id) {
     // 数据库查询逻辑
   }
-
+```
 - 空值降级策略(RedisInterface与RedisCache共用):
-- ```java
+```java
   public interface CacheMissHandler {
     Object handle(String key, JavaType type);
   }
+```
 - 实现CacheMissHandler接口重写handle方法,并注册为SpringBean
-- ```java
+```java
   public class CustomizeExceptionHandler implements CacheMissHandler {
     @Override
     public Object handle(String key, JavaType type) {
@@ -73,8 +76,9 @@
     key = "#id", //必填
     handler = "customizeException", //去除配置文件参数strategy指定后缀后，首字母小写
   )
+```
 - 锁策略(RedisCache可用)
-- ```java
+```java
   public interface CacheLock {
     void tryLock(String key, String value) throws InterruptedException;
     void unLock(String key, String value);
@@ -82,8 +86,9 @@
       //模板方法
     }
   }
+```
 - 实现CacheLock接口,重写tryLock和unLock方法,也可以重写模板方法
-- ```java
+```java
   public class CustomizeLock implements CacheLock {
     @Override
     public void tryLock(String key, String value) {
@@ -94,10 +99,22 @@
       //释放锁
     }
   }
+```
 - 在配置文件中填写
-- ```java
+```java
   wyk.redis.cache.lock: customize //使用实现类名首字母小写,如果以Lock后缀需要去除后缀
+```
 - 提供2个默认锁实现defaultRedis与defaultLocalReentrant
 ## 注意事项
 - @RedisInterface和@RedisCache是一样的,只是后者能扩展锁策略,前者通过cluster开关自由选择两种锁
+- 默认值可以不配置,可以直接引入依赖后配置
+```yml
+  wyk:
+    redis:
+      cache:
+        enable: true
+```
+```java
+  @RedisInterface(key = "#key")
+```
 - 本人为 Java/Spring 新手,主要目的是自娱自乐
