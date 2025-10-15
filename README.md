@@ -61,7 +61,8 @@
   public interface CacheMissHandler {
     Object handle(String key, JavaType type);
   }
-  实现CacheMissHandler接口重写handle方法,并注册为SpringBean
+- 实现CacheMissHandler接口重写handle方法,并注册为SpringBean
+- ```java
   public class CustomizeExceptionHandler implements CacheMissHandler {
     @Override
     public Object handle(String key, JavaType type) {
