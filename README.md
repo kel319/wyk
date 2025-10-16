@@ -1,6 +1,6 @@
 # WYK Redis AOP Cache
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Java](https://img.shields.io/badge/Java-8+-orange.svg)](https://www.java.com/)
+[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7+-green.svg)](https://spring.io/projects/spring-boot)
 
 基于 Spring AOP 的 Redis 缓存增强组件, 支持:
