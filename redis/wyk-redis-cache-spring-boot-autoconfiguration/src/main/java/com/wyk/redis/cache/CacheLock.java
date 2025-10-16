@@ -9,8 +9,8 @@ import java.util.UUID;
 
 public interface CacheLock {
 
-    void tryLock(String key, String value) throws InterruptedException;
-    void unLock(String key, String value);
+    void tryLock(String key, String value) throws Throwable;
+    void unLock(String key, String value) throws Throwable;
     default Object executeWithLock(ProceedingJoinPoint joinPoint, String key, RedisUtil redisUtil) throws Throwable {
         String value = UUID.randomUUID().toString();
         tryLock(key,value);

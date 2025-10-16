@@ -79,7 +79,6 @@ public class NewRedisAop {
     //主逻辑
     @Around("redisCachePointcut(redisCache)")
     public Object redisAop(ProceedingJoinPoint joinPoint,RedisCache redisCache) throws Throwable {
-        log.debug("RedisAop开始处理");
         log.debug("缓存模式为: {}",redisCache.redisModel());
         JavaType javaType = getJavaType(joinPoint);
         if (bloom && !"".equals(redisCache.bloomKey()) && !RedisModel.INSERT.equals(redisCache.redisModel())) {
@@ -132,7 +131,7 @@ public class NewRedisAop {
                 .filter(MethodSignature.class::isInstance)
                 .map(MethodSignature.class::cast)
                 .map(MethodSignature::getParameterNames)
-                .orElseThrow(() -> new CustomizeException("获取参数名称时发生异常", Status.BAD_REQUEST.getCode()));
+                .orElseThrow(() -> new CustomizeException("获取参数名称时发生异常"));
         Object[] args = joinPoint.getArgs();
         EvaluationContext context = new StandardEvaluationContext();
         for (int i = 0; i < args.length && i < parameterNames.length; i++) {
@@ -160,29 +159,18 @@ public class NewRedisAop {
     private Optional<Object> checkBloomFilter(Object key, RedisCache redisCache, JavaType javaType) {
         if (key instanceof Collection<?> collect) {
             boolean b = collect.stream()
-                    .anyMatch(k -> {
-                        if (k instanceof Long l) return bloomFilter.mightContain(l);
-                        else if (k instanceof String s) return  bloomFilter.mightContain(s);
-                        else return false;
-                    });
+                    .filter(Objects::nonNull)
+                    .map(Object::toString)
+                    .anyMatch(bloomFilter::mightContain);
             if (!b) {
                 log.debug("在集合中布隆过滤器未查询到key,触发降级: {}",collect);
-                return Optional.ofNullable(getHandler(redisCache.handler()).handle(collect.toString(),javaType));
+                return Optional.ofNullable(getHandler(redisCache.handler()).handle(collect,javaType));
             }
         } else {
-            if (key instanceof String s) {
-                if (!bloomFilter.mightContain(s)) {
-                    log.debug("布隆过滤器未查询到String类型的key,触发降级: {}",s);
-                    return Optional.ofNullable(getHandler(redisCache.handler()).handle(s,javaType));
-                }
-            } else if (key instanceof Long l) {
-                if (!bloomFilter.mightContain(l)) {
-                    log.debug("布隆过滤器未查询到Long类型的key,触发降级: {}",l);
-                    return Optional.ofNullable(getHandler(redisCache.handler()).handle(l.toString(),javaType));
-                }
-            } else {
-                log.debug("无法识别的key,触发降级: {}",key);
-                return Optional.ofNullable(getHandler(redisCache.handler()).handle(key.toString(),javaType));
+            String value = String.valueOf(key);
+            if (!bloomFilter.mightContain(value)) {
+               ;log.debug("布隆过滤器未查询到key,触发降级: {}",value);
+                return Optional.ofNullable(getHandler(redisCache.handler()).handle(key,javaType));
             }
         }
         return Optional.empty();

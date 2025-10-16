@@ -98,7 +98,7 @@ public class RedisAop {
         JavaType javaType = getJavaType(joinPoint);
         if (bloom && redisInterface.bloomKey() != null && !redisInterface.bloomKey().trim().isEmpty()) {
             Object o = spELUtil.parseBloomSpEL(redisInterface.bloomKey(), redisInterface.defaultVal(), joinPoint);
-            Optional<Object> optionalBloom = bloomFilterHandler(o, redisInterface.handler(), key, javaType);
+            Optional<Object> optionalBloom = bloomFilterHandler(o, redisInterface.handler(), javaType);
             if (optionalBloom.isPresent()) {
                 Object object = optionalBloom.get();
                 return EmptyHandler.isNullMarker(object)?null:object;
@@ -195,17 +195,17 @@ public class RedisAop {
     }
 
     //查布隆
-    private Optional<Object> bloomFilterHandler(Object o,String handler,String key,JavaType javaType) {
-        if (o instanceof List<?> s) {
+    private Optional<Object> bloomFilterHandler(Object result,String handler,JavaType javaType) {
+        if (result instanceof List<?> s) {
             boolean b = s.stream().anyMatch(list -> list instanceof Long l && bloomFilter.mightContain(l));
             if(!b) {
                 log.debug("布隆过滤器未找到List: {},直接结束!", s);
-                return Optional.ofNullable(resolveHandler(handler).handle(key, javaType));
+                return Optional.ofNullable(resolveHandler(handler).handle(result, javaType));
             }
-        } else if (o instanceof Long l) {
+        } else if (result instanceof Long l) {
             if (!bloomFilter.mightContain(l)) {
                 log.debug("布隆过滤器未找到Long: {},直接结束!", l);
-                return Optional.ofNullable(resolveHandler(handler).handle(key, javaType));
+                return Optional.ofNullable(resolveHandler(handler).handle(result, javaType));
             }
         }
         return Optional.empty();

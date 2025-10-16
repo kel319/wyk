@@ -13,6 +13,6 @@ public @interface RedisInterface {
     String key(); //SpEL表达式
     String defaultVal() default "defaultVal"; //KEY为null的默认值
     RedisModel redisModel() default RedisModel.QUERY; //方法的模式
-    String handler() default "exceptionHandler";
+    String handler() default "exception";
     String bloomKey() default ""; //布隆过滤器key
 }
