@@ -118,7 +118,7 @@
 ## 配置详解
 | 配置项                     | 说明                                                                 | 默认值            |
 |----------------------------|----------------------------------------------------------------------|-------------------|
-| `enable`                   | `RedisInterface` 开关，true 即可使用 `RedisInterface`，**必填**           | `true`            |
+| `enable`                   | `RedisInterface` 开关，true 即可使用 `RedisInterface`，**必填**           | —            |
 | `test`                     | `RedisCache` 开关，true 即可使用 `RedisCache`                          | `false`           |
 | `cluster`                  | 集群模式开关，true 时 `RedisInterface` 使用分布式锁防止缓存击穿           | `true`            |
 | `bloom`                    | 布隆过滤器开关                                                        | `false`           |
