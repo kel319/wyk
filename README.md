@@ -4,12 +4,12 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7+-green.svg)](https://spring.io/projects/spring-boot)
 
 基于 Spring AOP 的 Redis 缓存增强组件, 支持:
-- 提供了两个注解RedisInterface与RedisCache,功能一致
 - 缓存自动查询/更新/删除
 - 布隆过滤器防止缓存穿透
 - 分布式锁/本地锁防止缓存击穿
 - 空值降级策略
 - 支持事务提交后再写缓存
+- 提供了两个注解RedisInterface与RedisCache,功能一致
 # 功能
 - **查询缓存**: 自动读取 Redis，如果命中直接返回，未命中执行方法并写入缓存
 - **更新/删除缓存**: 方法执行后自动删除或更新缓存
@@ -155,4 +155,3 @@
 ```java
   @RedisInterface(key = "#key")
 ```
-- 本人为 Java/Spring 新手,主要目的是自娱自乐
