@@ -2,6 +2,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-8+-orange.svg)](https://www.java.com/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7+-green.svg)](https://spring.io/projects/spring-boot)
+
 基于 Spring AOP 的 Redis 缓存增强组件, 支持:
 - 提供了两个注解RedisInterface与RedisCache,RedisCache为实验版本
 - 缓存自动查询/更新/删除
