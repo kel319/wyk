@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dac93abe-ea88-4483-963f-fcd4f55790ea" name="更改" comment="feat: &#10;- 新增了实验性NewRedisAop&#10;- NewRedisAop通过实现CacheLock新增锁策略" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../wyk-redis-cache-spring-boot-autoconfiguration" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="localRepository" value="D:\Maven\RepoSitory" />
+        <option name="userSettingsFile" value="D:\Maven\conf\settings.xml" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="33wdbRHJc2mR1Q2T97lQG2Es3Cg" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven.wyk-redis-cache-spring-boot-autoconfiguration [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.wyk-redis-cache-spring-boot-autoconfiguration [install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.wyk-redis-cache-spring-boot-stater [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.wyk-redis-cache-spring-boot-stater [install].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/xuexiziliao/java/wyk-redis-cache-spring-boot-stater&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;模块&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;
+  }
+}</component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="dac93abe-ea88-4483-963f-fcd4f55790ea" name="更改" comment="" />
+      <created>1760232140570</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1760232140570</updated>
+    </task>
+    <task id="LOCAL-00001" summary="feat: 实现Redis缓存Spring Boot自动配置&#10;&#10;- 定义RedisAutoConfiguration自动配置类&#10;- 实现RedisProperties外部化配置&#10;- 提供RedisAop缓存切面&#10;- 集成布隆过滤器防护&#10;- 配置Spring Boot自动装配&#10;- 实现分布式锁和缓存工具类">
+      <option name="closed" value="true" />
+      <created>1760341846866</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1760341846866</updated>
+    </task>
+    <task id="LOCAL-00002" summary="feat: &#10;- 新增了实验性NewRedisAop&#10;- NewRedisAop通过实现CacheLock新增锁策略">
+      <option name="closed" value="true" />
+      <created>1760494156568</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1760494156568</updated>
+    </task>
+    <task id="LOCAL-00003" summary="feat: &#10;- 新增了实验性NewRedisAop&#10;- NewRedisAop通过实现CacheLock新增锁策略">
+      <option name="closed" value="true" />
+      <created>1760494310347</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1760494310348</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
+    <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="19ff5f2e-5587-44ec-92ca-d53c7c036a78" value="TOOL_WINDOW" />
+      </map>
+    </option>
+    <option name="TAB_STATES">
+      <map>
+        <entry key="19ff5f2e-5587-44ec-92ca-d53c7c036a78">
+          <value>
+            <State />
+          </value>
+        </entry>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: 实现Redis缓存Spring Boot自动配置&#10;&#10;- 定义RedisAutoConfiguration自动配置类&#10;- 实现RedisProperties外部化配置&#10;- 提供RedisAop缓存切面&#10;- 集成布隆过滤器防护&#10;- 配置Spring Boot自动装配&#10;- 实现分布式锁和缓存工具类" />
+    <MESSAGE value="feat: &#10;- 新增了实验性NewRedisAop&#10;- NewRedisAop通过实现CacheLock新增锁策略" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: &#10;- 新增了实验性NewRedisAop&#10;- NewRedisAop通过实现CacheLock新增锁策略" />
+  </component>
+</project>

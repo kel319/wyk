@@ -1,0 +1,3 @@
+com.wyk.redis.RedisAutoConfiguration
+com.wyk.redis.RedisCoreConfiguration
+com.wyk.redis.CacheLockAutoConfiguration
