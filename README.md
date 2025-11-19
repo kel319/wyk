@@ -67,6 +67,34 @@
     // 数据库查询逻辑
   }
 ```
+- 配置详解
+
+| 配置项                 	| 说明                          | 默认值          |
+| ---------------------- | --------------------------- | ------------ |
+| enable                 | RedisInterface 开关，true 即可使用 | —            |
+| test                   | RedisCache 开关               | false        |
+| cluster                | 集群模式开关                      | true         |
+| bloom                  | 布隆过滤器开关                     | false        |
+| nil                    | 空值缓存开关                      | true         |
+| watchdog               | 分布式锁自动续期开关                  | true         |
+| nilValue               | 空值占位符                       | "**NULL**"   |
+| strategy               | 空值降级策略后缀                    | Handler      |
+| maxExpires             | 最大缓存随机时间（秒）                 | 31           |
+| minExpires             | 最小缓存随机时间（秒）                 | 10           |
+| localLockTimeOut       | 本地锁超时时间（秒）                  | 2            |
+| distributedLockTimeOut | 分布式锁过期时间（秒）                 | 30           |
+| lock                   | RedisCache 注解锁策略选择          | defaultRedis |
+| expectedSize           | 布隆过滤器预期插入条数                 | 10000        |
+- 注解详解
+
+| 参数名        | 说明                                | 默认值              |
+| ---------- | --------------------------------- | ---------------- |
+| key        | SpEL 表达式，用于生成缓存 Key，必填            | —                |
+| value      | 缓存 Key 前缀                         | defaultValue     |
+| defaultVal | SpEL 解析结果为 null 时使用的 Key          | defaultVal       |
+| redisModel | 缓存方法模式，支持 QUERY / UPDATE / DELETE | RedisModel.QUERY |
+| handler    | 降级策略处理器名称，自定义 Bean 名              | ExceptionHandler |
+| bloomKey   | 布隆过滤器 Key，空表示不启用                  | ""               |
 - 空值降级策略(RedisInterface与RedisCache共用):
 ```java
   public interface CacheMissHandler {
