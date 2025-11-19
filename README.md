@@ -69,7 +69,7 @@
 ```
 - 配置详解
 
-| 配置项                 	| 说明                          | 默认值          |
+| 配置项                 | 说明                           | 默认值          |
 | ---------------------- | --------------------------- | ------------ |
 | enable                 | RedisInterface 开关，true 即可使用 | —            |
 | test                   | RedisCache 开关               | false        |
@@ -85,6 +85,8 @@
 | distributedLockTimeOut | 分布式锁过期时间（秒）                 | 30           |
 | lock                   | RedisCache 注解锁策略选择          | defaultRedis |
 | expectedSize           | 布隆过滤器预期插入条数                 | 10000        |
+| interval           	 | 热点时间间隔                       | 3600        |
+| threshold              | 热点访问频率阈值                  | 200        |
 - 注解详解
 
 | 参数名        | 说明                                | 默认值              |
