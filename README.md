@@ -81,7 +81,7 @@
 | bloom                  | 布隆过滤器开关                     | false        |
 | nil                    | 空值缓存开关                      | true         |
 | watchdog               | 分布式锁自动续期开关                  | true         |
-| nilValue               | 空值占位符                       | "**NULL**"   |
+| nilValue               | 空值占位符                       | "__NULL__"   |
 | strategy               | 空值降级策略后缀                    | Handler      |
 | maxExpires             | 最大缓存随机时间（秒）                 | 31           |
 | minExpires             | 最小缓存随机时间（秒）                 | 10           |
