@@ -8,7 +8,7 @@ public class RedisProperties {
     private boolean enable;
     private boolean test = false;
     private boolean cluster = true;
-    private boolean bloom = false;
+    private boolean bloom = true;
     private boolean nil = true;
     private boolean watchdog = true; //仅cluster = true有效
     private String nilValue = "__NULL__";
@@ -22,7 +22,7 @@ public class RedisProperties {
     private String lock = "defaultRedis";
     private Long interval = 3600L; //热点过期时间间隔
     private Long threshold = 200L; //热点升级条件
-    private boolean hotspotEnable = true;
+    private boolean hotspotEnable = true; //热点检测开启
 
     public RedisProperties() {
     }

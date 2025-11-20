@@ -116,7 +116,7 @@ public class NewRedisAop {
             };
         }
         return switch (redisCache.redisModel()) {
-            case QUERY -> query(joinPoint, redisCache,key, javaType, hotspot);
+            case QUERY -> query(joinPoint, redisCache,key, javaType);
             case UPDATE,INSERT,DELETE -> update(joinPoint,key);
         };
     }
@@ -136,9 +136,9 @@ public class NewRedisAop {
     }
 
     //查询分支
-    private Object query(ProceedingJoinPoint joinPoint,RedisCache redisCache,String key,JavaType javaType, boolean hotspot) throws Throwable {
+    private Object query(ProceedingJoinPoint joinPoint,RedisCache redisCache,String key,JavaType javaType) throws Throwable {
 
-        Optional<Object> redisResult = checkRedis(key, redisCache, javaType, hotspot);
+        Optional<Object> redisResult = checkRedis(key, redisCache, javaType);
         if (redisResult.isPresent()) return EmptyHandler.isNullMarker(redisResult.get()) ? null : redisResult.get();
         log.debug("锁策略: {}",lock);
         return getLock(lock).executeWithLock(joinPoint, key, redisUtil);
@@ -201,14 +201,14 @@ public class NewRedisAop {
     }
 
     //查redis
-    private Optional<Object> checkRedis(String key, RedisCache redisCache, JavaType javaType, boolean hotspot) {
+    private Optional<Object> checkRedis(String key, RedisCache redisCache, JavaType javaType) {
         if (!RedisModel.QUERY.equals(redisCache.redisModel())) {
             log.debug("非法类型,将跳过检查缓存逻辑");
             return Optional.empty();
         }
         Object redisResult = redisUtil.get(key, javaType);
         if (redisResult != null) {
-            if (!hotspot && nil && nilValue.equals(redisResult))
+            if (nil && nilValue.equals(redisResult))
                 return Optional.ofNullable(getHandler(redisCache.handler()).handle(key,javaType));
             else {
                 if (nilValue.equals(redisResult)) return Optional.empty();
@@ -219,6 +219,7 @@ public class NewRedisAop {
                     log.debug("KeyInfo当前访问次数为: {},计算访问窗口为: {}", compute.getFrequency().sum(),
                             Duration.between(compute.getStartTime(), LocalDateTime.now()).getSeconds());
                 }
+                return nilValue.equals(redisResult) ? Optional.empty() : Optional.of(redisResult);
             }
 //            else return nilValue.equals(redisResult) ? Optional.empty() : Optional.of(redisResult);
         }
