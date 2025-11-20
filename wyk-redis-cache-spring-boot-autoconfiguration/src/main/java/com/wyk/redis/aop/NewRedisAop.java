@@ -30,6 +30,8 @@ import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -86,6 +88,7 @@ public class NewRedisAop {
     //轮询热点降级
     @PostConstruct
     public void HotspotDetection() {
+        //轮询map中的每个keyInfo并调用其isHotspot
         scheduled.scheduleAtFixedRate(() -> keyInfoMap.values().forEach(KeyInfo::isHotspot),1,1, TimeUnit.MINUTES);
     }
 
@@ -108,7 +111,7 @@ public class NewRedisAop {
             };
         }
         return switch (redisCache.redisModel()) {
-            case QUERY -> query(joinPoint,redisCache,key,javaType);
+            case QUERY -> query(joinPoint, redisCache,key, javaType, keyInfo);
             case UPDATE,INSERT,DELETE -> update(joinPoint,key);
         };
     }
@@ -128,9 +131,9 @@ public class NewRedisAop {
     }
 
     //查询分支
-    private Object query(ProceedingJoinPoint joinPoint,RedisCache redisCache,String key,JavaType javaType) throws Throwable {
+    private Object query(ProceedingJoinPoint joinPoint,RedisCache redisCache,String key,JavaType javaType, KeyInfo keyInfo) throws Throwable {
 
-        Optional<Object> redisResult = checkRedis(key, redisCache, javaType);
+        Optional<Object> redisResult = checkRedis(key, redisCache, javaType, keyInfo);
         if (redisResult.isPresent()) return EmptyHandler.isNullMarker(redisResult.get()) ? null : redisResult.get();
         log.debug("锁策略: {}",lock);
         return getLock(lock).executeWithLock(joinPoint, key, redisUtil);
@@ -193,18 +196,22 @@ public class NewRedisAop {
     }
 
     //查redis
-    private Optional<Object> checkRedis(String key, RedisCache redisCache, JavaType javaType) {
+    private Optional<Object> checkRedis(String key, RedisCache redisCache, JavaType javaType, KeyInfo keyInfo) {
         if (!RedisModel.QUERY.equals(redisCache.redisModel())) {
             log.debug("非法类型,将跳过检查缓存逻辑");
             return Optional.empty();
         }
         Object redisResult = redisUtil.get(key, javaType);
         if (redisResult != null) {
-            if (nil && nilValue.equals(redisResult))
+            if (!keyInfo.getHotspot().get() && nil && nilValue.equals(redisResult))
                 return Optional.ofNullable(getHandler(redisCache.handler()).handle(key,javaType));
             else {
                 if (nilValue.equals(redisResult)) return Optional.empty();
+                //热点属性自增
                 KeyInfo.increment(keyInfoMap,key);
+                KeyInfo compute = keyInfoMap.compute(key, (k, oldValue) -> oldValue == null ? new KeyInfo(k) : oldValue);
+                log.debug("KeyInfo当前访问次数为: {},计算访问窗口为: {}",compute.getFrequency().get(),
+                        Duration.between(compute.getStartTime(), LocalDateTime.now()).getSeconds());
             }
 //            else return nilValue.equals(redisResult) ? Optional.empty() : Optional.of(redisResult);
         }

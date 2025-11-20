@@ -23,33 +23,31 @@ public class KeyInfo implements Serializable {
     private static Long threshold; //热点升级条件
     private static RedisUtil redisUtil;
 
-
-
     private AtomicBoolean hotspot;
     private AtomicLong frequency;
     private LocalDateTime startTime;
-    private LocalDateTime lastAccessTime;
     private String key;
 
+    //构造
     public KeyInfo(String key) {
         this.hotspot = new AtomicBoolean(false);
         this.frequency = new AtomicLong(0L);
         this.startTime = LocalDateTime.now();
-        this.lastAccessTime = LocalDateTime.now();
         this.key = key;
     }
 
+    //静态注入构造
     public static void staticInj(Long interval, Long threshold, RedisUtil redisUtil) {
         KeyInfo.interval = interval;
         KeyInfo.threshold = threshold;
         KeyInfo.redisUtil = redisUtil;
     }
 
+    //构造
     private KeyInfo(AtomicBoolean hotspot, AtomicLong frequency, LocalDateTime startTime, String key) {
         this.hotspot = hotspot == null ? new AtomicBoolean(false) : hotspot;
         this.frequency = frequency == null ? new AtomicLong(0L) : frequency;
         this.startTime = startTime == null ? LocalDateTime.now() : startTime;
-        this.lastAccessTime = LocalDateTime.now();
         this.key = key;
     }
 
@@ -77,15 +75,6 @@ public class KeyInfo implements Serializable {
         this.startTime = startTime;
     }
 
-
-    public LocalDateTime getLastAccessTime() {
-        return lastAccessTime;
-    }
-
-    public void setLastAccessTime(LocalDateTime lastAccessTime) {
-        this.lastAccessTime = lastAccessTime;
-    }
-
     public String getKey() {
         return key;
     }
@@ -94,12 +83,17 @@ public class KeyInfo implements Serializable {
         this.key = key;
     }
 
+    //工厂方法创建
     public static KeyInfo of(AtomicBoolean hotspot, AtomicLong frequency, LocalDateTime startTime, String key) {
         return new KeyInfo(hotspot,frequency,startTime,key);
     }
+
+    //建造模式静态工厂
     public static Build builder() {
         return new Build();
     }
+
+    //建造模式入口
     public static class Build {
         private AtomicBoolean hotspot;
         private AtomicLong frequency;
@@ -132,29 +126,34 @@ public class KeyInfo implements Serializable {
         }
     }
 
+    //判断热点升级与降级
     public static void isHotspot(KeyInfo keyInfo) {
-        if (Duration.between(keyInfo.getLastAccessTime(),LocalDateTime.now()).getSeconds() > interval) {
-            if (keyInfo.getHotspot().get()) {
+        //判断起始时间和当前时间的差
+        if (Duration.between(keyInfo.getStartTime(),LocalDateTime.now()).getSeconds() > interval) {
+            if (keyInfo.getHotspot().get() && keyInfo.getFrequency().get() < threshold/2) {
+                //CAS降级热点
                 if (keyInfo.getHotspot().compareAndSet(true,false)) {
                     redisUtil.downgrade(keyInfo.getKey());
-                    keyInfo.setLastAccessTime(LocalDateTime.now());
                     log.debug("长时间未访问热点数据,热点降级");
                 }
             }
+            keyInfo.setStartTime(LocalDateTime.now());
             keyInfo.getFrequency().set(0);
             return;
         }
+        //判断在时间差合格时,访问频率是否达到预期
         if (keyInfo.getFrequency().get() > threshold) {
+            //CAS升级热点
             if (keyInfo.getHotspot().compareAndSet(false,true)) {
                 redisUtil.upgrade(keyInfo.getKey());
                 keyInfo.setStartTime(LocalDateTime.now());
-                keyInfo.setLastAccessTime(LocalDateTime.now());
                 keyInfo.getFrequency().set(0);
-                log.debug("达到缓存访问阈值,升级热点");
+                log.debug("达到缓存访问阈值,热点升级");
             }
         }
     }
 
+    //自增1,并检测热点
     public static void increment(Map<String, KeyInfo> keyInfoMap, String key) {
         keyInfoMap.compute(key,(k,oldValue) -> {
             KeyInfo newValue = oldValue == null ? new KeyInfo(k) : oldValue;
