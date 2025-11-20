@@ -210,7 +210,7 @@ public class NewRedisAop {
                 //热点属性自增
                 KeyInfo.increment(keyInfoMap,key);
                 KeyInfo compute = keyInfoMap.compute(key, (k, oldValue) -> oldValue == null ? new KeyInfo(k) : oldValue);
-                log.debug("KeyInfo当前访问次数为: {},计算访问窗口为: {}",compute.getFrequency().get(),
+                log.debug("KeyInfo当前访问次数为: {},计算访问窗口为: {}",compute.getFrequency().sum(),
                         Duration.between(compute.getStartTime(), LocalDateTime.now()).getSeconds());
             }
 //            else return nilValue.equals(redisResult) ? Optional.empty() : Optional.of(redisResult);
