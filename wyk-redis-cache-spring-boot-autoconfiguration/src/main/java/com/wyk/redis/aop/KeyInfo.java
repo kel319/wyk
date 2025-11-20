@@ -28,6 +28,7 @@ public class KeyInfo implements Serializable {
     private LocalDateTime startTime;
     private String key;
 
+
     //构造
     public KeyInfo(String key) {
         this.hotspot = new AtomicBoolean(false);
@@ -128,20 +129,22 @@ public class KeyInfo implements Serializable {
 
     //判断热点升级与降级
     public static void isHotspot(KeyInfo keyInfo) {
+        long sum = keyInfo.getFrequency().sum();
         //判断起始时间和当前时间的差
         if (Duration.between(keyInfo.getStartTime(),LocalDateTime.now()).getSeconds() > interval) {
-            if (keyInfo.getHotspot().get() && keyInfo.getFrequency().sumThenReset() < threshold/2) {
+            if (keyInfo.getHotspot().get() && sum < threshold/2) {
                 //CAS降级热点
                 if (keyInfo.getHotspot().compareAndSet(true,false)) {
                     redisUtil.downgrade(keyInfo.getKey());
                     log.debug("长时间未访问热点数据,热点降级");
                 }
+                keyInfo.getFrequency().reset();
             }
             keyInfo.setStartTime(LocalDateTime.now());
             return;
         }
         //判断在时间差合格时,访问频率是否达到预期
-        if (keyInfo.getFrequency().sum() > threshold) {
+        if (sum > threshold) {
             //CAS升级热点
             if (keyInfo.getHotspot().compareAndSet(false,true)) {
                 redisUtil.upgrade(keyInfo.getKey());

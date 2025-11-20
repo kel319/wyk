@@ -98,6 +98,7 @@ public class CacheLockAutoConfiguration {
                 bloomFilter,
                 redisProperties.isBloom(),
                 redisProperties.isNil(),
+                redisProperties.isHotspotEnable(),
                 redisUtil,
                 redisProperties.getNilValue(),
                 redisProperties.getLock()
@@ -105,6 +106,7 @@ public class CacheLockAutoConfiguration {
     }
     @Bean
     @ConditionalOnMissingBean(name = "keyInfoMap")
+    @ConditionalOnProperty(prefix = "wyk.redis.cache", name = "hotspotEnable", havingValue = "true")
     public Map<String, KeyInfo> keyInfoMap() {
         return new ConcurrentHashMap<>();
     }
@@ -114,7 +116,7 @@ public class CacheLockAutoConfiguration {
     }
 
     private String generateLockName(String simpleName) {
-        if (simpleName.endsWith("Lock")) {
+        if (simpleName.length() > 4 && simpleName.endsWith("Lock")) {
             String temp = simpleName.substring(0,simpleName.length()-4);
             return temp.substring(0,1).toLowerCase() + temp.substring(1);
         }

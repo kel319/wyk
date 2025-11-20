@@ -22,6 +22,7 @@ public class RedisProperties {
     private String lock = "defaultRedis";
     private Long interval = 3600L; //热点过期时间间隔
     private Long threshold = 200L; //热点升级条件
+    private boolean hotspotEnable = true;
 
     public RedisProperties() {
     }
@@ -160,5 +161,13 @@ public class RedisProperties {
 
     public void setThreshold(Long threshold) {
         this.threshold = threshold;
+    }
+
+    public boolean isHotspotEnable() {
+        return hotspotEnable;
+    }
+
+    public void setHotspotEnable(boolean hotspotEnable) {
+        this.hotspotEnable = hotspotEnable;
     }
 }

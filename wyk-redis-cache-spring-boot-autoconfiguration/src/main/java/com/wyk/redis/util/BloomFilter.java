@@ -88,11 +88,20 @@ public class BloomFilter {
         }
         return results;
     }
-    //简单哈希算法
+    //哈希算法
+//    private int hash(byte[] bytes, int seed) {
+//        int h = seed;
+//        for (byte b : bytes) {
+//            h = 31 * h + b;
+//        }
+//        return h;
+//    }
     private int hash(byte[] bytes, int seed) {
         int h = seed;
         for (byte b : bytes) {
-            h = 31 * h + b;
+            h ^= (b * 0x5bd1e995);
+            h ^= (h >>> 15);
+            h *= 0x5bd1e995;
         }
         return h;
     }
