@@ -55,6 +55,9 @@
       distributedLockTimeOut: 30 //分布式锁过期时间,默认30秒
       lock: defaultRedis //RedisCache注解提供的锁策略选择,默认是defaultRedis(分布式锁)
       expectedSize: 10000 //布隆过滤器预期插入条数,默认10000
+      interval: 3600 //热点时间间隔(s),默认3600(一小时)
+      threshold: 200 //热点访问频率阈值,默认200
+      hotspotEnable: true //热点检测开关,默认true
 ```
 - 注解使用
 ```java
@@ -91,6 +94,7 @@
 | expectedSize           | 布隆过滤器预期插入条数                 | 10000        |
 | interval           	 | 热点时间间隔                       | 3600        |
 | threshold              | 热点访问频率阈值                  | 200        |
+| hotspotEnable          | 热点检测开关                      | true        |
 - 注解详解
 
 | 参数名        | 说明                                | 默认值              |
