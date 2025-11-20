@@ -44,7 +44,7 @@
       enable: true //RedisInterface开关,true即可用RedisInterface,必填
       test: false //RedisCache开关,true即可用RedisCache,默认false
       cluster: true //集群开关,true时RedisInterface使用分布式锁防止缓存击穿,默认true
-      bloom: false //布隆过滤器开关,默认false
+      bloom: true //布隆过滤器开关,默认true
       nil: true //空值缓存开关,默认true
       watchdog: true //分布式锁自动续期开关,默认true
       nilValue: "__NULL__" //空值参数,默认"__NULL__"
@@ -78,7 +78,7 @@
 | enable                 | RedisInterface 开关，true 即可使用 | —            |
 | test                   | RedisCache 开关               | false        |
 | cluster                | 集群模式开关                      | true         |
-| bloom                  | 布隆过滤器开关                     | false        |
+| bloom                  | 布隆过滤器开关                     | true        |
 | nil                    | 空值缓存开关                      | true         |
 | watchdog               | 分布式锁自动续期开关                  | true         |
 | nilValue               | 空值占位符                       | "__NULL__"   |
