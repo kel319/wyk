@@ -42,32 +42,11 @@
   redis:
     cache:
       enable: true //RedisInterface开关,true即可用RedisInterface,必填
-      test: false //RedisCache开关,true即可用RedisCache,默认false
-      cluster: true //集群开关,true时RedisInterface使用分布式锁防止缓存击穿,默认true
-      bloom: true //布隆过滤器开关,默认true
-      nil: true //空值缓存开关,默认true
-      watchdog: true //分布式锁自动续期开关,默认true
-      nilValue: "__NULL__" //空值参数,默认"__NULL__"
-      strategy: Handler //空值时降级策略的后缀,自定义降级策略时以这个结尾,key就是删掉后缀首字母小写,默认Handler
-      maxExpires: 31 //最大缓存随机时间,默认31
-      minExpires: 10 //最小缓存随机时间,默认10
-      localLockTimeOut: 2 //本地锁获取超时时间,默认2秒
-      distributedLockTimeOut: 30 //分布式锁过期时间,默认30秒
-      lock: defaultRedis //RedisCache注解提供的锁策略选择,默认是defaultRedis(分布式锁)
-      expectedSize: 10000 //布隆过滤器预期插入条数,默认10000
-      interval: 3600 //热点时间间隔(s),默认3600(一小时)
-      threshold: 200 //热点访问频率阈值,默认200
-      hotspotEnable: true //热点检测开关,默认true
 ```
 - 注解使用
 ```java
   @RedisInterface(
     key = "#id", //spel表达式,必填
-    value = "user", //缓存key前缀,默认defaultValue
-    defaultVal = "defaultVal", //spel解析出null时的key,默认defaultVal
-    redisModel = RedisModel.QUERY, //缓存方法模式,默认RedisModel.QUERY
-    handler = "emptyHandler", //降级策略,默认ExceptionHandler
-    bloomKey = "#id" //布隆过滤器key,默认"",默认代表不使用布隆过滤器
   )
   public User getUserById(Long id) {
     // 数据库查询逻辑
