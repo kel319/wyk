@@ -132,5 +132,5 @@
 ```
 - 提供2个默认锁实现defaultRedis与defaultLocalReentrant
 ## 注意事项
-- @RedisInterface和@RedisCache是一样的,只是后者能扩展锁策略,前者通过cluster开关自由选择两种锁
+- @RedisInterface和@RedisCache是一样的,只是后者能扩展锁策略和热点升级功能,前者通过cluster开关自由选择两种锁
 - 默认值可以不配置,可以直接引入依赖后配置
