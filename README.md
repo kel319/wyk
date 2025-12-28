@@ -25,14 +25,14 @@
   cd wyk/redis/wyk-redis-cache-spring-boot-autoconfiguration
   mvn clean install
   cd ..
-  cd wyk-redis-cache-spring-boot-stater
+  cd wyk-redis-cache-spring-boot-starter
   mvn clean install
 ```
 - 引入依赖:
 ```xml
 	<dependency>
 			<groupId>com.wyk</groupId>
-			<artifactId>wyk-redis-cache-spring-boot-stater</artifactId>
+			<artifactId>wyk-redis-cache-spring-boot-starter</artifactId>
 			<version>1.0-SNAPSHOT</version>
 	</dependency>
 ```
