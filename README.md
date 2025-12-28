@@ -41,12 +41,12 @@
   wyk:
   redis:
     cache:
-      enable: true //RedisInterface开关,true即可用RedisInterface,必填
+      enable: true # RedisInterface开关,true即可用RedisInterface,必填
 ```
 - 注解使用
 ```java
   @RedisInterface(
-    key = "#id", //spel表达式,必填
+    key = "#id", # spel表达式,必填
   )
   public User getUserById(Long id) {
     // 数据库查询逻辑
@@ -99,8 +99,8 @@
     }
   }
   @RedisInterface(
-    key = "#id", //必填
-    handler = "customizeException", //去除配置文件参数strategy指定后缀后，首字母小写
+    key = "#id", # 必填
+    handler = "customizeException", # 去除配置文件参数strategy指定后缀后，首字母小写
   )
 ```
 - 锁策略(RedisCache可用)
@@ -128,18 +128,9 @@
 ```
 - 在配置文件中填写
 ```java
-  wyk.redis.cache.lock: customize //使用实现类名首字母小写,如果以Lock后缀需要去除后缀
+  wyk.redis.cache.lock: customize # 使用实现类名首字母小写,如果以Lock后缀需要去除后缀
 ```
 - 提供2个默认锁实现defaultRedis与defaultLocalReentrant
 ## 注意事项
 - @RedisInterface和@RedisCache是一样的,只是后者能扩展锁策略,前者通过cluster开关自由选择两种锁
 - 默认值可以不配置,可以直接引入依赖后配置
-```yml
-  wyk:
-    redis:
-      cache:
-        enable: true
-```
-```java
-  @RedisInterface(key = "#key")
-```
