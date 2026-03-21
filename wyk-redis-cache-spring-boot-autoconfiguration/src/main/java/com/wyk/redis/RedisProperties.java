@@ -5,12 +5,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "wyk.redis.cache")
 public class RedisProperties {
+    /** 为 true 时启用本 starter 的 RedisTemplate / RedisUtil / RedisAop 等自动配置 */
     private boolean enable;
-    private boolean test = false;
-    private boolean cluster = true;
     private boolean bloom = true;
     private boolean nil = true;
-    private boolean watchdog = true; //仅cluster = true有效
+    /** 分布式锁成功持有后是否由客户端周期性续期（见 {@link com.wyk.redis.util.RedisUtil#setDistributedLock}） */
+    private boolean watchdog = true;
     private String nilValue = "__NULL__";
     private String strategy = "Handler";
     private Long nilTime = 30L; //单位s
@@ -53,10 +53,6 @@ public class RedisProperties {
         this.minExpires = minExpires;
     }
 
-    public void setCluster(boolean cluster) {
-        this.cluster = cluster;
-    }
-
     public void setBloom(boolean bloom) {
         this.bloom = bloom;
     }
@@ -87,10 +83,6 @@ public class RedisProperties {
 
     public void setEnable(boolean enable) {
         this.enable = enable;
-    }
-
-    public boolean isCluster() {
-        return cluster;
     }
 
     public boolean isBloom() {
@@ -139,14 +131,6 @@ public class RedisProperties {
 
     public void setLock(String lock) {
         this.lock = lock;
-    }
-
-    public boolean isTest() {
-        return test;
-    }
-
-    public void setTest(boolean test) {
-        this.test = test;
     }
 
     public Long getInterval() {

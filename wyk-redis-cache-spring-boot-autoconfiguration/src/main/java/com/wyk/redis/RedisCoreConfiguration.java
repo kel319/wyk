@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -17,8 +17,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 
 @AutoConfiguration
-//@ConditionalOnProperty(prefix = "wyk.redis.cache",name = "enable",havingValue = "true")
-@ConditionalOnExpression("${wyk.redis.cache.enable:false} == true or ${wyk.redis.cache.test:false} == true")
+@ConditionalOnProperty(prefix = "wyk.redis.cache", name = "enable", havingValue = "true")
 @AutoConfigureBefore(RedisAutoConfiguration.class)
 public class RedisCoreConfiguration {
 

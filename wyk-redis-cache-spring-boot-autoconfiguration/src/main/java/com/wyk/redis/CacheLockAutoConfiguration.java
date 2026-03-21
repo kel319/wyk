@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 @AutoConfiguration
 @EnableConfigurationProperties(RedisProperties.class)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
-@ConditionalOnExpression("${wyk.redis.cache.enable:false} == true or ${wyk.redis.cache.test:false} == true")
+@ConditionalOnProperty(prefix = "wyk.redis.cache", name = "enable", havingValue = "true")
 public class CacheLockAutoConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(CacheLockAutoConfiguration.class);

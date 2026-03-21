@@ -41,7 +41,7 @@
   wyk:
   redis:
     cache:
-      enable: true # 开启后注册 RedisUtil、RedisAop 等，必填其一或与 test: true
+      enable: true # 开启后注册 RedisTemplate、RedisUtil、RedisAop 等自动配置
 ```
 - 注解使用（`@RedisCache`）
 ```java
@@ -55,9 +55,7 @@
 
 | 配置项                 | 说明                           | 默认值          |
 | ---------------------- | --------------------------- | ------------ |
-| enable                 | 总开关，true 时启用缓存 AOP 等        | —            |
-| test                   | 测试开关，与 enable 二选一即可拉齐自动配置   | false        |
-| cluster                | 集群模式开关                      | true         |
+| enable                 | 总开关，true 时启用本 starter 全部自动配置   | false        |
 | bloom                  | 布隆过滤器开关                     | true        |
 | nil                    | 空值缓存开关                      | true         |
 | watchdog               | 分布式锁自动续期开关                  | true         |
