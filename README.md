@@ -4,7 +4,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7+-green.svg)](https://spring.io/projects/spring-boot)
 
 基于 Spring AOP 的 Redis 缓存增强组件, 支持:
-- 提供了两个注解RedisInterface与RedisCache,RedisCache为实验版本
+- 使用注解 **`@RedisCache`**（LIST / RESULT / ENTITY、热点、运行时前缀等）
 - 缓存自动查询/更新/删除
 - 布隆过滤器防止缓存穿透
 - 分布式锁/本地锁防止缓存击穿
@@ -41,13 +41,11 @@
   wyk:
   redis:
     cache:
-      enable: true # RedisInterface开关,true即可用RedisInterface,必填
+      enable: true # 开启后注册 RedisUtil、RedisAop 等，必填其一或与 test: true
 ```
-- 注解使用
+- 注解使用（`@RedisCache`）
 ```java
-  @RedisInterface(
-    key = "#id", # spel表达式,必填
-  )
+  @RedisCache(key = "#id", value = "user:byId", redisModel = RedisModel.QUERY)
   public User getUserById(Long id) {
     // 数据库查询逻辑
   }
@@ -57,8 +55,8 @@
 
 | 配置项                 | 说明                           | 默认值          |
 | ---------------------- | --------------------------- | ------------ |
-| enable                 | RedisInterface 开关，true 即可使用 | —            |
-| test                   | RedisCache 开关               | false        |
+| enable                 | 总开关，true 时启用缓存 AOP 等        | —            |
+| test                   | 测试开关，与 enable 二选一即可拉齐自动配置   | false        |
 | cluster                | 集群模式开关                      | true         |
 | bloom                  | 布隆过滤器开关                     | true        |
 | nil                    | 空值缓存开关                      | true         |
@@ -69,7 +67,7 @@
 | minExpires             | 最小缓存随机时间（秒）                 | 10           |
 | localLockTimeOut       | 本地锁超时时间（秒）                  | 2            |
 | distributedLockTimeOut | 分布式锁过期时间（秒）                 | 30           |
-| lock                   | RedisCache 注解锁策略选择          | defaultRedis |
+| lock                   | `@RedisCache` 锁策略 Bean 名       | defaultRedis |
 | expectedSize           | 布隆过滤器预期插入条数                 | 10000        |
 | interval           	 | 热点时间间隔                       | 3600        |
 | threshold              | 热点访问频率阈值                  | 200        |
@@ -83,11 +81,12 @@
 | defaultVal | SpEL 解析结果为 null 时使用的 Key          | defaultVal       |
 | redisModel | 缓存方法模式，支持 QUERY / UPDATE / DELETE | RedisModel.QUERY |
 | handler    | 降级策略处理器名称，自定义 Bean 名              | ExceptionHandler |
-| bloomKey   | 布隆过滤器 Key，空表示不启用                  | ""               |
-- 空值降级策略(RedisInterface与RedisCache共用):
+| cacheMode  | RESULT / LIST / ENTITY               | RESULT           |
+| useRuntimePrefix | 为 true 时用 `IRedisListCacheWarmup#getModulePrefix` | true        |
+- 空值降级策略（与 `@RedisCache` 共用）:
 ```java
   public interface CacheMissHandler {
-    Object handle(String key, JavaType type);
+    Object handle(Object key, JavaType type);
   }
 ```
 - 实现CacheMissHandler接口重写handle方法,并注册为SpringBean
@@ -98,12 +97,13 @@
         throw new CustomizeException("查询失败,数据不存在: " + key, Status.BAD_REQUEST.getCode());
     }
   }
-  @RedisInterface(
-    key = "#id", # 必填
-    handler = "customizeException", # 去除配置文件参数strategy指定后缀后，首字母小写
+  @RedisCache(
+    key = "#id",
+    value = "user:byId",
+    handler = "customizeException",
   )
 ```
-- 锁策略(RedisCache可用)
+- 锁策略（`@RedisCache`）
 ```java
   public interface CacheLock {
     void tryLock(String key, String value) throws InterruptedException;
@@ -132,5 +132,5 @@
 ```
 - 提供2个默认锁实现defaultRedis与defaultLocalReentrant
 ## 注意事项
-- @RedisInterface和@RedisCache是一样的,只是后者能扩展锁策略和热点升级功能,前者通过cluster开关自由选择两种锁
-- 默认值可以不配置,可以直接引入依赖后配置
+- 已移除旧版 `@RedisInterface` 与旧 `RedisAop`；请统一使用 **`@RedisCache`** + 当前 **`RedisAop`** 切面。
+- 默认值可不逐项配置，按需覆盖 `wyk.redis.cache` 即可。

@@ -8,9 +8,10 @@ import java.util.List;
 
 public class EmptyHandler implements CacheMissHandler {
     private static final Object NULL_MARKER = new Object();
+
     @Override
     public Object handle(Object key, JavaType type) {
-        if (List.class.isAssignableFrom(type.getRawClass())) {
+        if (type.getRawClass() != null && List.class.isAssignableFrom(type.getRawClass())) {
             return Collections.emptyList();
         }
         return NULL_MARKER;

@@ -1,167 +1,43 @@
 package com.wyk.redis.aop;
 
-import com.wyk.redis.util.RedisUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Getter;
+import lombok.Setter;
 
-
-import java.io.Serial;
 import java.io.Serializable;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.LongAdder;
 
+/**
+ * 纯数据对象：缓存 key 的访问统计与热点标记，不持有 Redis 或任何 static 依赖。
+ * 高并发下使用 LongAdder 统计访问次数、AtomicBoolean 表示热点状态。
+ */
+@Setter
+@Getter
 public class KeyInfo implements Serializable {
-    @Serial
+
     private static final long serialVersionUID = 1L;
 
-    private static final Logger log = LoggerFactory.getLogger(KeyInfo.class);
-
-    private static Long interval; //热点过期时间间隔
-    private static Long threshold; //热点升级条件
-    private static RedisUtil redisUtil;
-
-    private AtomicBoolean hotspot;
-    private LongAdder frequency;
+    /** Redis 缓存 key */
+    private final String key;
+    /** 访问次数（高并发统计） */
+    private final LongAdder frequency;
+    /** 是否为热点 */
+    private final AtomicBoolean hotspot;
+    /** 当前统计窗口开始时间 */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime startTime;
-    private String key;
 
-
-    //构造
     public KeyInfo(String key) {
-        this.hotspot = new AtomicBoolean(false);
+        this.key = key;
         this.frequency = new LongAdder();
+        this.hotspot = new AtomicBoolean(false);
         this.startTime = LocalDateTime.now();
-        this.key = key;
     }
 
-    //静态注入构造
-    public static void staticInj(Long interval, Long threshold, RedisUtil redisUtil) {
-        KeyInfo.interval = interval;
-        KeyInfo.threshold = threshold;
-        KeyInfo.redisUtil = redisUtil;
-    }
-
-    //构造
-    private KeyInfo(AtomicBoolean hotspot, LongAdder frequency, LocalDateTime startTime, String key) {
-        this.hotspot = hotspot == null ? new AtomicBoolean(false) : hotspot;
-        this.frequency = frequency == null ? new LongAdder() : frequency;
-        this.startTime = startTime == null ? LocalDateTime.now() : startTime;
-        this.key = key;
-    }
-
-    public AtomicBoolean getHotspot() {
-        return hotspot;
-    }
-
-    public void setHotspot(AtomicBoolean hotspot) {
-        this.hotspot = hotspot;
-    }
-
-    public LongAdder getFrequency() {
-        return frequency;
-    }
-
-    public void setFrequency(LongAdder frequency) {
-        this.frequency = frequency;
-    }
-
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    //工厂方法创建
-    public static KeyInfo of(AtomicBoolean hotspot, LongAdder frequency, LocalDateTime startTime, String key) {
-        return new KeyInfo(hotspot,frequency,startTime,key);
-    }
-
-    //建造模式静态工厂
-    public static Build builder() {
-        return new Build();
-    }
-
-    //建造模式入口
-    public static class Build {
-        private AtomicBoolean hotspot;
-        private LongAdder frequency;
-        private LocalDateTime startTime;
-        private String key;
-
-        public Build() {
-            this.startTime = LocalDateTime.now();
-        }
-
-        public Build hotspot(AtomicBoolean hotspot) {
-            this.hotspot = hotspot;
-            return this;
-        }
-        public Build frequency(LongAdder frequency) {
-            this.frequency = frequency;
-            return this;
-        }
-        public Build startTime(LocalDateTime startTime) {
-            this.startTime = startTime;
-            return this;
-        }
-        public Build key(String key) {
-            this.key = key;
-            return this;
-        }
-
-        public KeyInfo build() {
-            return new KeyInfo(this.hotspot,this.frequency,this.startTime,this.key);
-        }
-    }
-
-    //判断热点升级与降级
-    public static void isHotspot(KeyInfo keyInfo) {
-        long sum = keyInfo.getFrequency().sum();
-        //判断起始时间和当前时间的差
-        if (Duration.between(keyInfo.getStartTime(),LocalDateTime.now()).getSeconds() > interval) {
-            if (keyInfo.getHotspot().get() && sum < threshold/2) {
-                //CAS降级热点
-                if (keyInfo.getHotspot().compareAndSet(true,false)) {
-                    redisUtil.downgrade(keyInfo.getKey());
-                    log.debug("长时间未访问热点数据,热点降级");
-                }
-                keyInfo.getFrequency().reset();
-            }
-            keyInfo.setStartTime(LocalDateTime.now());
-            return;
-        }
-        //判断在时间差合格时,访问频率是否达到预期
-        if (sum > threshold) {
-            //CAS升级热点
-            if (keyInfo.getHotspot().compareAndSet(false,true)) {
-                redisUtil.upgrade(keyInfo.getKey());
-                keyInfo.setStartTime(LocalDateTime.now());
-                keyInfo.getFrequency().reset();
-                log.debug("达到缓存访问阈值,热点升级");
-            }
-        }
-    }
-
-    //自增1,并检测热点
-    public static void increment(Map<String, KeyInfo> keyInfoMap, String key) {
-        keyInfoMap.compute(key,(k,oldValue) -> {
-            KeyInfo newValue = oldValue == null ? new KeyInfo(k) : oldValue;
-            newValue.getFrequency().increment();
-            isHotspot(newValue);
-            return newValue;
-        });
+    /** 访问计数 +1，由 AOP 在每次命中缓存时调用 */
+    public void increment() {
+        frequency.increment();
     }
 }

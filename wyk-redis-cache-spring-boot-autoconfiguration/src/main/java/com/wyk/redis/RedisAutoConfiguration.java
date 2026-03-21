@@ -3,7 +3,6 @@ package com.wyk.redis;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wyk.redis.aop.RedisAop;
 import com.wyk.redis.cache.CacheMissHandler;
 import com.wyk.redis.cache.imp.EmptyHandler;
 import com.wyk.redis.cache.imp.ExceptionHandler;
@@ -12,7 +11,6 @@ import com.wyk.redis.util.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -85,26 +83,6 @@ public class RedisAutoConfiguration {
         return map;
     }
 
-    @Bean
-    @ConditionalOnMissingBean(RedisAop.class)
-    @ConditionalOnProperty(prefix = "wyk.redis.cache",name = "enable",havingValue = "true")
-    public RedisAop redisAop(RedisProperties redisProperties,
-                             RedisUtil redisUtil,
-                             Map<String,CacheMissHandler> cacheMissHandlerMap,
-                             @Autowired(required = false) BloomFilter bloomFilter) {
-        log.info("=== 创建 RedisAop Bean ===");
-        return new RedisAop(
-                redisUtil,
-                cacheMissHandlerMap,
-                bloomFilter,
-                redisProperties.isCluster(),
-                redisProperties.isBloom(),
-                redisProperties.isNil(),
-                redisProperties.getNilValue(),
-                redisProperties.getLocalLockTimeOut(),
-                redisProperties.getDistributedLockTimeOut()
-        );
-    }
     private String generateHandlerName(CacheMissHandler cacheMissHandler,String strategy) {
         String simpleName = cacheMissHandler.getClass().getSimpleName().trim();
         if (simpleName.endsWith(strategy)) {

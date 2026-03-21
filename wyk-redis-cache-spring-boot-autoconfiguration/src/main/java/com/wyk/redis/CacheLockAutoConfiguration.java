@@ -1,18 +1,20 @@
 package com.wyk.redis;
 
-
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.wyk.redis.aop.HotspotService;
 import com.wyk.redis.aop.KeyInfo;
-import com.wyk.redis.aop.NewRedisAop;
+import com.wyk.redis.aop.RedisAop;
 import com.wyk.redis.cache.CacheLock;
 import com.wyk.redis.cache.CacheMissHandler;
 import com.wyk.redis.cache.imp.LocalReentrantLock;
 import com.wyk.redis.cache.imp.RedisLock;
 import com.wyk.redis.util.BloomFilter;
 import com.wyk.redis.util.RedisUtil;
-import jakarta.annotation.PostConstruct;
+import com.wyk.redis.util.SpringContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -21,34 +23,36 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLongArray;
 
+/**
+ * 与 soho-admin-service {@code RedisCacheConfiguration} 对齐：LIST/ENTITY 模式、热点、Caffeine KeyInfo。
+ */
 @AutoConfiguration
 @EnableConfigurationProperties(RedisProperties.class)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
-@ConditionalOnProperty(prefix = "wyk.redis.cache",name = "test",havingValue = "true")
+@ConditionalOnExpression("${wyk.redis.cache.enable:false} == true or ${wyk.redis.cache.test:false} == true")
 public class CacheLockAutoConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(CacheLockAutoConfiguration.class);
-    private final RedisProperties redisProperties;
-    private final RedisUtil redisUtil;
 
-    public CacheLockAutoConfiguration(RedisProperties redisProperties, RedisUtil redisUtil) {
-        this.redisProperties = redisProperties;
-        this.redisUtil = redisUtil;
+    @Bean
+    @ConditionalOnMissingBean(SpringContextHolder.class)
+    public SpringContextHolder springContextHolder() {
+        return new SpringContextHolder();
     }
 
     @Bean
     @ConditionalOnMissingBean(RedisLock.class)
-    public RedisLock redisLock(RedisProperties redisProperties,
-                               RedisUtil redisUtil) {
-        log.info("=== 创建 redisLock Bean ===");
+    public RedisLock redisLock(RedisProperties redisProperties, RedisUtil redisUtil) {
+        log.info("=== 创建 RedisLock Bean ===");
         return new RedisLock(
                 redisProperties.getDistributedLockTimeOut(),
+                redisProperties.getLockRetryTimes(),
+                redisProperties.getLockWaitMillis(),
                 redisUtil
         );
     }
@@ -56,71 +60,81 @@ public class CacheLockAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(LocalReentrantLock.class)
     public LocalReentrantLock reentrantLock(RedisProperties redisProperties) {
-        log.info("=== 创建 reentrantLock Bean ===");
+        log.info("=== 创建 LocalReentrantLock Bean ===");
         return new LocalReentrantLock(redisProperties.getLocalLockTimeOut());
     }
 
     @Bean
     @ConditionalOnMissingBean(name = "lockMap")
-    public Map<String, CacheLock> lockMap(ObjectProvider<List<CacheLock>> provider,
-                                          RedisLock redisLock,
-                                          LocalReentrantLock reentrantLock) {
+    public Map<String, CacheLock> lockMap(RedisLock redisLock, LocalReentrantLock reentrantLock) {
+        Map<String, CacheLock> map = new HashMap<>();
+        map.put("defaultRedis", redisLock);
+        map.put("defaultLocalReentrant", reentrantLock);
+        map.put("reentrantLock", reentrantLock);
         log.info("=== 创建 lockMap Bean ===");
-        HashMap<String, CacheLock> cacheLockHashMap = new HashMap<>();
-        cacheLockHashMap.put("defaultRedis",redisLock);
-        cacheLockHashMap.put("defaultLocalReentrant",reentrantLock);
-        List<CacheLock> cacheLocks = provider.getIfAvailable(ArrayList::new);
-        cacheLocks.stream()
-                .filter(cacheLock -> !(cacheLock instanceof RedisLock || cacheLock instanceof LocalReentrantLock))
-                .forEach(cacheLock -> {
-                    String simpleName = cacheLock.getClass().getSimpleName();
-                    String lockKey = generateLockName(simpleName);
-                    cacheLockHashMap.put(lockKey,cacheLock);
-                    log.info("自定义锁策略 {} 注入成功",lockKey);
-                });
-        return cacheLockHashMap;
+        return map;
     }
 
     @Bean
-    @ConditionalOnMissingBean(NewRedisAop.class)
-    public NewRedisAop newRedisAop(RedisProperties redisProperties,
-                                    Map<String, CacheLock> lockMap,
-                                    Map<String, CacheMissHandler> cacheMissHandlerMap,
-                                    RedisLock redisLock,
-                                    RedisUtil redisUtil,
-                                    @Autowired(required = false) BloomFilter bloomFilter) {
-        log.info("=== 创建 newRedisAop Bean ===");
-        return new NewRedisAop(
+    @ConditionalOnProperty(prefix = "wyk.redis.cache", name = "hotspotEnable", havingValue = "true")
+    public LoadingCache<String, KeyInfo> keyInfoCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(20_000)
+                .expireAfterAccess(30, TimeUnit.MINUTES)
+                .build(KeyInfo::new);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "wyk.redis.cache", name = "hotspotEnable", havingValue = "true")
+    public HotspotService hotspotService(RedisProperties props, RedisUtil redisUtil) {
+        long interval = props.getInterval() != null ? props.getInterval() : 3600L;
+        long threshold = props.getThreshold() != null ? props.getThreshold() : 200L;
+        return new HotspotService(interval, threshold, redisUtil);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "wyk.redis.cache", name = "hotspotEnable", havingValue = "true")
+    public Cache<String, Object> hotspotValueCache() {
+        return Caffeine.newBuilder()
+                .maximumSize(1000)
+                .expireAfterAccess(30, TimeUnit.MINUTES)
+                .build();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(RedisAop.class)
+    public RedisAop redisAop(
+            Map<String, CacheLock> lockMap,
+            Map<String, CacheMissHandler> cacheMissHandlerMap,
+            RedisLock redisLock,
+            RedisUtil redisUtil,
+            RedisProperties props,
+            @Autowired(required = false) LoadingCache<String, KeyInfo> keyInfoCache,
+            @Autowired(required = false) HotspotService hotspotService,
+            @Autowired(required = false) Cache<String, Object> hotspotValueCache,
+            @Autowired(required = false) BloomFilter bloomFilter) {
+        log.info("=== 创建 RedisAop Bean (@RedisCache 切面) ===");
+        return new RedisAop(
                 lockMap,
                 cacheMissHandlerMap,
-                new ConcurrentHashMap<>(),
+                keyInfoCache,
+                hotspotService,
+                hotspotValueCache,
                 redisLock,
-                bloomFilter,
-                redisProperties.isBloom(),
-                redisProperties.isNil(),
-                redisProperties.isHotspotEnable(),
+                bloomFilter != null ? bloomFilter : createDefaultBloomFilter(),
+                props.isBloom(),
+                props.isNil(),
+                props.isHotspotEnable(),
                 redisUtil,
-                redisProperties.getNilValue(),
-                redisProperties.getLock()
+                props.getNilValue(),
+                props.getLock()
         );
     }
-    @Bean
-    @ConditionalOnMissingBean(name = "keyInfoMap")
-    @ConditionalOnProperty(prefix = "wyk.redis.cache", name = "hotspotEnable", havingValue = "true")
-    public Map<String, KeyInfo> keyInfoMap() {
-        return new ConcurrentHashMap<>();
-    }
-    @PostConstruct
-    private void init() {
-        KeyInfo.staticInj(redisProperties.getInterval(),redisProperties.getThreshold(),redisUtil);
-    }
 
-    private String generateLockName(String simpleName) {
-        if (simpleName.length() > 4 && simpleName.endsWith("Lock")) {
-            String temp = simpleName.substring(0,simpleName.length()-4);
-            return temp.substring(0,1).toLowerCase() + temp.substring(1);
-        }
-        return simpleName.substring(0,1).toLowerCase() + simpleName.substring(1);
+    private static BloomFilter createDefaultBloomFilter() {
+        int expectedSize = 10000;
+        double m = (-expectedSize * Math.log(0.01)) / (Math.log(2) * Math.log(2));
+        int bitArraySize = (int) Math.ceil(m);
+        return new BloomFilter(new AtomicLongArray((bitArraySize + 63) / 64), bitArraySize, 5);
     }
-
 }

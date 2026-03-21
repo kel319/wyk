@@ -16,6 +16,8 @@ public class RedisProperties {
     private Long nilTime = 30L; //单位s
     private Long localLockTimeOut = 2L;
     private Long distributedLockTimeOut = 30L; //分布式锁超时时间
+    private Integer lockRetryTimes = 20;
+    private Long lockWaitMillis = 100L;
     private Long maxExpires = 31L;
     private Long minExpires = 10L;
     private Integer expectedSize = 10000;
@@ -169,5 +171,21 @@ public class RedisProperties {
 
     public void setHotspotEnable(boolean hotspotEnable) {
         this.hotspotEnable = hotspotEnable;
+    }
+
+    public Integer getLockRetryTimes() {
+        return lockRetryTimes;
+    }
+
+    public void setLockRetryTimes(Integer lockRetryTimes) {
+        this.lockRetryTimes = lockRetryTimes;
+    }
+
+    public Long getLockWaitMillis() {
+        return lockWaitMillis;
+    }
+
+    public void setLockWaitMillis(Long lockWaitMillis) {
+        this.lockWaitMillis = lockWaitMillis;
     }
 }
